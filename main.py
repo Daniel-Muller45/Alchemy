@@ -2,7 +2,11 @@ from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import AgentType, initialize_agent
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from reactors.pfr.tools import PlugFlowConversionTool
+from reactors.pfr.tools import (
+    PlugFlowConversionTool, PlugFlowProductionTool, PlugFlowVolumeConversionTool, PlugFlowVolumeProductionTool,
+    PlugFlowTemperatureConversionTool, PlugFlowTemperatureProductionTool
+)
+
 # Load OpenAI API Key from .env file
 load_dotenv()
 
@@ -16,6 +20,11 @@ def init_agent(model):
     )
     tools = [
         PlugFlowConversionTool(),
+        PlugFlowProductionTool(),
+        PlugFlowVolumeConversionTool(),
+        PlugFlowVolumeProductionTool(),
+        PlugFlowTemperatureConversionTool(),
+        PlugFlowTemperatureProductionTool(),
     ]
     agent = initialize_agent(
         tools=tools,
