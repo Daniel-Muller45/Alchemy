@@ -9,26 +9,19 @@ load_dotenv()
 
 # Initialize agent
 def init_agent(model):
-
-    # LLM
     llm = ChatOpenAI(
         streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
         model=model
     )
-
-    # Tools for function calling
     tools = [
         PlugFlowConversionTool(),
     ]
-
-    # Initialize agent
     agent = initialize_agent(
         tools=tools,
         llm=llm,
         agent=AgentType.OPENAI_FUNCTIONS
     )
-
     return agent
 
 
