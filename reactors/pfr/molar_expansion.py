@@ -35,7 +35,7 @@ def pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V):
         v = v_0 * (1 + e * X)
         c_A = F_A / v
         c_B = F_B / v
-        r_A = -k * c_A * c_B**2
+        r_A = -k * c_A * c_B
         dFdV = [r_A, r_A, -r_A]
         return dFdV
 
