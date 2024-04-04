@@ -38,6 +38,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from reactors.pfr.tools import PlugFlowConversionTool
 from reactors.pfr.molar_expansion import pfr_expansion_factor
+from reactors.pfr.tools import PlugFlowVolumeConversionTool
+from scipy.optimize import fsolve
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -54,7 +56,7 @@ prompt = ChatPromptTemplate.from_messages(
             "system",
             "You are very powerful assistant, but bad at calculating conversion of a reaction. "
             "Talk with the user as normal. "
-            "If they ask you to calculate the conversion of a reactor, use a tool",
+            "If they ask you to calculate the conversion of a reactor, use the pfr_conversion tool. If they ask you to calculate the volume, use the pfr_expansion_volume_conversion tool.",
         ),
         # Please note the ordering of the fields in the prompt!
         # The correct ordering is:
@@ -92,6 +94,41 @@ def pfr_conversion(v_0, T, P_0, c_A0, c_B0, k, V):
     # }
     return float(conv)
 
+@tool
+def pfr_expansion_volume_conversion(v_0, T, P_0, c_A0, c_B0, k, X):
+    """
+    Find the reactor volume needed to achieve a target conversion of A.
+
+    Parameters:
+    - X: Desired conversion of A (0 to 1)
+    - v_0: Initial volumetric flow rate
+    - T: Temperature
+    - P_0: Initial Pressure
+    - c_A0: Initial Concentration of A
+    - c_B0: Initial Concentration of B
+    - k: Rate Constant
+    - V_max: Maximum reactor volume to consider
+
+    Returns:
+    - V: Reactor volume that achieves the target conversion
+    """
+    def objective(V):
+        conv_calc, prod_calc = pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V)
+        return conv_calc - X
+
+    v_solve = fsolve(objective, 1)[0]
+    # plug_flow_conversion_dict = {
+    #     "initial_volumetric_flowrate": v_0,
+    #     "temperature": T,
+    #     "initial_pressure": P_0,
+    #     "initial_concentration_of_A": c_A0,
+    #     "initial_concentration_of_B": c_B0,
+    #     "rate_constant": k,
+    #     "reactor_volume": v_solve,
+    #     "conversion": X,
+    # }
+    return v_solve
+
 # We need to set streaming=True on the LLM to support streaming individual tokens.
 # Tokens will be available when using the stream_log / stream events endpoints,
 # but not when using the stream endpoint since the stream implementation for agent
@@ -99,7 +136,7 @@ def pfr_conversion(v_0, T, P_0, c_A0, c_B0, k, V):
 # See the client notebook that shows how to use the stream events endpoint.
 llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0, streaming=True)
 
-tools = [pfr_conversion]
+tools = [pfr_conversion, pfr_expansion_volume_conversion]
 
 
 llm_with_tools = llm.bind(tools=[format_tool_to_openai_tool(tool) for tool in tools])

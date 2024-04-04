@@ -3,21 +3,42 @@ from langserve import RemoteRunnable
 
 remote_chain = RemoteRunnable("http://localhost:8000")
 
+st.title("AI Reactor Engineer")
+
+# Initialize chat history in the session state if it doesn't exist
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
+    with st.chat_message("assistant"):
+        st.markdown('Hi I\'m Alchemy, your reactor engineering assistant. Please ask me any questions.')
 
-title = st.text_input('AI Reactor Engineer', placeholder='Enter here...')
+# Display chat messages from history
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-if title:  # Only proceed if the user has entered something
+# Accept user input
+user_input = st.chat_input("Enter your query here...")
+
+if user_input:  # Proceed if the user has entered something
+    # Add user message to chat history
+    st.session_state.chat_history.append({"content": user_input, "role": "user"})
+
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
+    # Call the remote AI engine
     response = remote_chain.invoke({
-        "input": title,
-        # Use the last 10 messages from the session state chat history
+        "input": user_input,
+        # Use the last 10 messages from the chat history
         "chat_history": st.session_state.chat_history[-10:]
     })
-    outp = response['output']
 
-    # Add user and AI messages to the session state chat history
-    st.session_state.chat_history.append({"content": title, "role": "user"})
-    st.session_state.chat_history.append({"content": outp, "role": "ai"})
+    # Extract the AI's response from the output
+    ai_response = response['output']
 
-    st.write(outp)
+    # Display AI message in the chat
+    with st.chat_message("ai"):
+        st.markdown(ai_response)
+
+    # Add AI message to chat history
+    st.session_state.chat_history.append({"content": ai_response, "role": "ai"})

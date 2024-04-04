@@ -24,7 +24,7 @@ def pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V):
     e = c_A0 * R * T / P_0 * delta
     initial_condition = [F_A0, F_B0, F_C0]
     v_bounds = [0, V]
-    v_span = np.linspace(v_bounds[0], v_bounds[1], 101)
+    v_span = np.linspace(v_bounds[0], v_bounds[1], 101).flatten()
 
     def dFdV(Vspan, F):
         F_A = F[0]
