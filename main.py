@@ -79,9 +79,23 @@ def word_length(word: str) -> int:
     return len(word)
 
 @tool
-def pfr_conversion(v_0, T, P_0, c_A0, c_B0, k, V):
-    """Returns the conversion"""
-    conv, prod = pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V)
+def pfr_conversion(v_0, T, P_0, c_A0, c_B0, k, V, a, b, c, d):
+    """
+    Parameters:
+    - v_0: Initial volumetric flow rate
+    - T: Temperature
+    - P_0: Initial Pressure
+    - c_A0: Initial Concentration of A
+    - c_B0: Initial Concentration of B
+    - k: Rate Constant
+    - V: Maximum reactor volume to consider
+    - a: The stoichiometric coefficient of reactant A
+    - b: The stoichiometric coefficient of reactant B
+    - c: The stoichiometric coefficient of reactant C
+    - d: The stoichiometric coefficient of reactant D
+
+    Returns the conversion"""
+    conv, prod = pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V, a, b, c, d)
     # plug_flow_conversion_dict = {
     #     "initial_volumetric_flowrate": v_0,
     #     "temperature": T,
@@ -95,7 +109,7 @@ def pfr_conversion(v_0, T, P_0, c_A0, c_B0, k, V):
     return float(conv)
 
 @tool
-def pfr_expansion_volume_conversion(v_0, T, P_0, c_A0, c_B0, k, X):
+def pfr_expansion_volume_conversion(v_0, T, P_0, c_A0, c_B0, k, X, a, b, c, d):
     """
     Find the reactor volume needed to achieve a target conversion of A.
 
@@ -108,12 +122,16 @@ def pfr_expansion_volume_conversion(v_0, T, P_0, c_A0, c_B0, k, X):
     - c_B0: Initial Concentration of B
     - k: Rate Constant
     - V_max: Maximum reactor volume to consider
+    - a: The stoichiometric coefficient of reactant A
+    - b: The stoichiometric coefficient of reactant B
+    - c: The stoichiometric coefficient of reactant C
+    - d: The stoichiometric coefficient of reactant D
 
     Returns:
     - V: Reactor volume that achieves the target conversion
     """
     def objective(V):
-        conv_calc, prod_calc = pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V)
+        conv_calc, prod_calc = pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V, a, b, c, d)
         return conv_calc - X
 
     v_solve = fsolve(objective, 1)[0]

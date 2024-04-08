@@ -4,7 +4,7 @@ from scipy.optimize import fsolve
 import json
 
 
-def pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V):
+def pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V, a, b, c, d):
     """
     Calculate the conversion and production in an isothermal Plug Flow Reactor with molar expansion given:
         - Volumetric Flow Rate
@@ -14,6 +14,7 @@ def pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V):
         - Initial Concentration of B
         - Rate Constant
         - Reactor Volume
+        - The stoichiometric coefficients of the reaction
     """
     R = 8.206 * 10 ** (-5)
     delta = -1
@@ -35,14 +36,14 @@ def pfr_expansion_factor(v_0, T, P_0, c_A0, c_B0, k, V):
         v = v_0 * (1 + e * X)
         c_A = F_A / v
         c_B = F_B / v
-        r_A = -k * c_A * c_B
+        r_A = -k * c_A**a * c_B**b
         dFdV = [r_A, r_A, -r_A]
         return dFdV
 
     sol = solve_ivp(dFdV, v_bounds, initial_condition, t_eval=v_span, dense_output=True, method='Radau')
     F_A, F_B, F_C = sol.y
     conv = 1 - F_A[-1] / F_A0
-    prod = c_A0 * v_0 * 3 * conv
+    prod = c_A0 * v_0 * c/a * conv
     return conv, prod
 
 
